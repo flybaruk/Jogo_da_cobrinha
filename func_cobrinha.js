@@ -29,12 +29,13 @@ class Cobrinha {
     }
 
     novaPosicao(){
+
+        this.body[0].x += this.velx;
+        this.body[0].y += this.vely;
         for (let i = this.body.length - 1; i > 0; i--) {
             this.body[i].x = this.body[i-1].x;
             this.body[i].y = this.body[i-1].y;
         }
-        this.body[0].x += this.velx;
-        this.body[0].y += this.vely;
     }
 
     
@@ -110,7 +111,7 @@ function jogo(){
 //função para colisão
 const mens = document.getElementById('mensagens');
 function colisao(){
-    if (minhaCobrinha.x < 0 || minhaCobrinha.y < 0 || minhaCobrinha.x + minhaCobrinha.com > comprimento || minhaCobrinha.y + minhaCobrinha.alt > altura) {
+    if (minhaCobrinha.body[0].x < 0 || minhaCobrinha.body[0].y < 0 || minhaCobrinha.body[0].x + minhaCobrinha.com > comprimento || minhaCobrinha.body[0].y + minhaCobrinha.alt > altura) {
         mens.innerHTML = 'Você perdeu, seu otario';
         const caixa = document.getElementById('caixa_de_mensagem');
         caixa.style.display = 'block';
@@ -119,7 +120,7 @@ function colisao(){
 }
 
 function aumentar_cobrinha(){
-    if (Comida.x === minhaCobrinha.x && Comida.y === minhaCobrinha.y) {
+    if (Comida.x === minhaCobrinha.body[0].x && Comida.y === minhaCobrinha.body[0].y) {
         if (minhaCobrinha.alt > minhaCobrinha.com) {
             minhaCobrinha.alt += aumenta_tamanho;
             comp_cobra += aumenta_tamanho;
