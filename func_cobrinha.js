@@ -1,6 +1,9 @@
 const canvas = document.getElementById('canvas');
+proporcao = 0.8;
 const comprimento = canvas.width;
 const altura = canvas.height; 
+const limiteX = comprimento * proporcao;
+const limiteY = altura * proporcao;
 const ctx = canvas.getContext("2d");
 //dimensão da cobrinha
 const aumenta_tamanho = 5;
@@ -8,38 +11,35 @@ let comp_cobra = 5;
 let alt_cobra = 3;
 let pos_iniX = 10;
 let pos_iniY = 10;
-//velocidade é baseado pelo mov, o SemMov existe pois só é possivel movimentar no eixo x ou y
+//velocidade é baseado pelo dx, o dy existe pois só é possivel movimentar no eixo x ou y
+let dx = 0;
+let dy = 0;
 const mov = 5;
-const SemMov = 0;
+let cabeca = {};
 //frames
 const intervalID = setInterval(jogo, 50);
+let estado = false;
 
-class Cobrinha { 
-    constructor(com, alt){
-        this.body = [
-            {x:pos_iniX, y:pos_iniY},
-            {x:pos_iniX - 1, y:pos_iniY},
-            {x:pos_iniX - 2, y:pos_iniY},
-            {x:pos_iniX - 3, y:pos_iniY}
-        ];
-        this.com = com;
-        this.alt = alt;
-        this.velx = 0;
-        this.vely = 0;
+let cobrinha = [
+    {x:pos_iniX, y:pos_iniY},
+    {x:pos_iniX - comp_cobra, y:pos_iniY},
+    {x:pos_iniX - (2 * comp_cobra), y:pos_iniY},
+    {x:pos_iniX - (3 * comp_cobra), y:pos_iniY},
+    {x:pos_iniX - (4 * comp_cobra), y:pos_iniY}, 
+    {x:pos_iniX - (5 * comp_cobra), y:pos_iniY},
+    {x:pos_iniX - (6 * comp_cobra), y:pos_iniY},
+    {x:pos_iniX - (7 * comp_cobra), y:pos_iniY},
+    {x:pos_iniX - (8 * comp_cobra), y:pos_iniY}  
+]
+
+function movimentacao(){
+    if(estado === true){
+        cabeca = {x: cobrinha[0].x + dx, y: cobrinha[0].y + dy};
+        cobrinha.unshift(cabeca);
+        cobrinha.pop();
     }
-
-    novaPosicao(){
-
-        this.body[0].x += this.velx;
-        this.body[0].y += this.vely;
-        for (let i = this.body.length - 1; i > 0; i--) {
-            this.body[i].x = this.body[i-1].x;
-            this.body[i].y = this.body[i-1].y;
-        }
-    }
-
-    
 }
+
 
 class comida{
     constructor(x, y, TamC, TamA){
@@ -50,84 +50,66 @@ class comida{
     }
 }
 
-// É o que faz a cobrinha aparecer
-let minhaCobrinha = new Cobrinha(comp_cobra, alt_cobra); 
-ctx.fillStyle = "#FF0000"; 
-ctx.fillRect(minhaCobrinha.x, minhaCobrinha.y, minhaCobrinha.com, minhaCobrinha.alt);
-//faz a comida aparecer
-let Comida = new comida(100, 100, 3, 3);
-ctx.fillStyle = "#0000FF";
-ctx.fillRect(Comida.x, Comida.y, Comida.TamC, Comida.TamA);
-
-
-//Controle da cobrinha
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key === "ArrowDown" && minhaCobrinha.vely !== -mov) {
-            minhaCobrinha.velx = SemMov;
-            minhaCobrinha.vely = mov; 
-            minhaCobrinha.com = alt_cobra;
-            minhaCobrinha.alt = comp_cobra;
+function desenharcobrinha(){
+    for (let i = 0; i < cobrinha.length; i++) {
+        const corpo = cobrinha[i];
+        ctx.fillStyle = 'red';
+        if (dx === 0) {
+            ctx.fillRect(corpo.x, corpo.y, alt_cobra + (mov - alt_cobra), comp_cobra);
+        } else {
+            ctx.fillRect(corpo.x, corpo.y, comp_cobra, alt_cobra + (mov - alt_cobra));
         }
-        else if (event.key === "ArrowUp" && minhaCobrinha.vely !== mov){
-            minhaCobrinha.velx = SemMov;
-            minhaCobrinha.vely = -mov;
-            minhaCobrinha.com = alt_cobra;
-            minhaCobrinha.alt = comp_cobra;
-        }
-        else if (event.key === "ArrowRight" && minhaCobrinha.velx !== -mov){
-            minhaCobrinha.velx = mov;
-            minhaCobrinha.vely = SemMov;
-            minhaCobrinha.com = comp_cobra;
-            minhaCobrinha.alt = alt_cobra;
-        }
-        else if (event.key === "ArrowLeft" && minhaCobrinha.velx !== mov){
-            minhaCobrinha.velx = -mov;
-            minhaCobrinha.vely = SemMov;
-            minhaCobrinha.com = comp_cobra;
-            minhaCobrinha.alt = alt_cobra;
-        }
-    })
 
-
-//função para atualizar as imagens que aparecem na tela
-function jogo(){
-    //ficar repetindo cobrinha
-    ctx.clearRect(0, 0, comprimento, altura);
-    minhaCobrinha.novaPosicao();
-    ctx.fillStyle = "#FF0000";
-    for (let i = 0; i < minhaCobrinha.body.length; i++) {
-        ctx.fillRect(minhaCobrinha.body[i].x, minhaCobrinha.body[i].y, minhaCobrinha.com, minhaCobrinha.alt);
     }
-    //ficar repetindo comida
-    let Comida = new comida(100, 100, 3, 3);
-    ctx.fillStyle = "#0000FF";
-    ctx.fillRect(Comida.x, Comida.y, Comida.TamC, Comida.TamA);
-    colisao();
-    aumentar_cobrinha();
 }
 
+//Controle da cobrinha
+document.addEventListener('keydown', (event) => {
+    if (event.key === "ArrowDown" && dy !== -mov) {
+        dx = 0;
+        dy = mov; 
+        estado = true;
+    }
+    else if (event.key === "ArrowUp" && dy !== mov){
+        dx = 0;
+        dy = -mov; 
+        estado = true;
+    }
+    else if (event.key === "ArrowRight" && dx !== -mov){
+        dx = mov;
+        dy = 0;
+        estado = true;
+    }
+    else if (event.key === "ArrowLeft" && dx !== mov){
+        dx = -mov;
+        dy = 0;
+        estado = true;
+    }
+})
 
 //função para colisão
 const mens = document.getElementById('mensagens');
 function colisao(){
-    if (minhaCobrinha.body[0].x < 0 || minhaCobrinha.body[0].y < 0 || minhaCobrinha.body[0].x + minhaCobrinha.com > comprimento || minhaCobrinha.body[0].y + minhaCobrinha.alt > altura) {
+    if (cobrinha[0].x < 0 || cobrinha[0].y < 0 || cobrinha[0].x> comprimento || cobrinha[0].y> altura) {
         mens.innerHTML = 'Você perdeu, seu otario';
         const caixa = document.getElementById('caixa_de_mensagem');
         caixa.style.display = 'block';
         clearInterval(intervalID);
     }
+    for (let i = 1; i < cobrinha.length; i++) {
+        if(cobrinha[i].x === cobrinha[0].x && cobrinha[i].y === cobrinha[0].y ){
+            mens.innerHTML = 'Você perdeu, seu otario';
+            const caixa = document.getElementById('caixa_de_mensagem');
+            caixa.style.display = 'block';
+            clearInterval(intervalID);
+        } 
+    }
 }
 
-function aumentar_cobrinha(){
-    if (Comida.x === minhaCobrinha.body[0].x && Comida.y === minhaCobrinha.body[0].y) {
-        if (minhaCobrinha.alt > minhaCobrinha.com) {
-            minhaCobrinha.alt += aumenta_tamanho;
-            comp_cobra += aumenta_tamanho;
-        }
-        else{
-            minhaCobrinha.com += aumenta_tamanho;
-            comp_cobra += aumenta_tamanho;
-        }
-    }
+function jogo() {
+    ctx.clearRect(0, 0, comprimento, altura);
+    colisao();
+    movimentacao();
+    desenharcobrinha();
+    
 }
